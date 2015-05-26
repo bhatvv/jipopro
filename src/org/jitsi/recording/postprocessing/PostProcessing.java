@@ -6,7 +6,6 @@
 package org.jitsi.recording.postprocessing;
 import java.io.*;
 import java.util.*;
-import java.util.List; //Disambiguation
 import java.util.concurrent.*;
 
 import org.jitsi.service.neomedia.*;
@@ -315,7 +314,14 @@ public class PostProcessing
          * because it is more efficient. We ignore the Config.OUTPUT_FORMAT
          * setting and have hard-coded webm settings in SimpleConcatStrategy.
          */
-        String videoFilename = outDir + "output.webm";
+        String[] splitted = outDir.split("recording/");
+        String video = splitted[1];
+        log("\n" +video+ "\n");
+        String videoFile= video.substring(0, video.length()-1) + "_output.webm" ;
+        log("\n" +videoFile+ "\n");
+        String videoFilename = outDir + videoFile;
+        log("\n" +videoFilename+ "\n");
+        
         concatStrategy.concatFiles(outDir+"sections", videoFilename);
         time("Concatenating sections and encode video");
         Exec.exec("rm -rf " + outDir + "sections");
@@ -346,15 +352,56 @@ public class PostProcessing
         //time("Encoding final result");
 
         for (String s : timings)
-            log(s);
+        	log(s);
+        
+        removeExtraFiles(videoFilename,videoFile);
+        
+        
+        
         log("All done, result saved in " + videoFilename
                 + ". And it took only " +
                 Utils.millisToSeconds(System.currentTimeMillis() - processingStarted)
                 + " seconds.");
 
+       
+        log(outDir);
+        log(videoFilename);
         Exec.closeLogFile();
     }
 
+    private static void removeExtraFiles(String file, String file1)
+    {
+    	String outputFile = file;
+    	
+    	
+    	
+    	String[] splitted = outDir.split("recording/");
+    	log("\n" +splitted[0]+ "\n");
+    	
+    	String moveFolder = splitted[0]+ "output/";
+    	log("\n" +moveFolder+ "\n");
+    	
+    	String moveDirectory = moveFolder + splitted[1];
+    	log("\n" +moveDirectory+ "\n");
+    	
+    	String finalOutputFile = moveDirectory + file1 ;
+    	log("\n" +finalOutputFile+ "\n");
+    	
+    	try
+    	{
+    		Exec.exec("mkdir -p " + moveDirectory);
+    		Exec.exec("mv " + outputFile + " " + finalOutputFile);
+    		Exec.exec("rm -r " + outDir);
+    		
+    		
+    	}
+    	catch(Exception e)
+    	{
+    		String s = e.toString();
+    		log(s);
+    	}
+    }
+    
     private static void time(String s)
     {
         long lastTime;
@@ -595,6 +642,7 @@ public class PostProcessing
 
             BufferedReader reader
                     = new BufferedReader(new InputStreamReader(p.getInputStream()));
+           // log(reader.readLine());
             videoDuration = Integer.parseInt(reader.readLine());
         }
         else
