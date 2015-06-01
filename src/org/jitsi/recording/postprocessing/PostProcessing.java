@@ -263,7 +263,7 @@ public class PostProcessing
                     //fixed somewhere else (participant.setUsername()?)
                     if (participant.username == null
                             || participant.username.equals("null"))
-                        participant.username = "";
+                        participant.username = "Participant";
                     participant.description = event.getParticipantDescription();
                     if (participant.description == null)
                         participant.description = "";
@@ -346,30 +346,31 @@ public class PostProcessing
 
         merge(audioMix, audioOffset, videoFilename, videoOffset, videoFilename);
         time("Merging audio and video");
-
-        // XXX encoding is now done during concatenation
-        //String finalResult = encodeResultVideo(videoFilename);
-        //time("Encoding final result");
-
-        for (String s : timings)
-        	log(s);
         
-        removeExtraFiles(videoFilename,videoFile);
+        String outputFileName = encodeResultVideo(videoFilename);
+        time("Encoding merged video");
         
-        
-        
-        log("All done, result saved in " + videoFilename
-                + ". And it took only " +
-                Utils.millisToSeconds(System.currentTimeMillis() - processingStarted)
-                + " seconds.");
-
+        log(outputFileName);
        
-        log(outDir);
-        log(videoFilename);
+        String outputFile
+        = Utils.trimFileExtension(videoFile);
+        
+        outputFile += ".mp4";
+        
+        String file = removeExtraFiles(outputFileName,outputFile);  
+        
+        time("Removing Extra Files");
+        
+        for(String timeTaken: timings)
+        	log(timeTaken);
+        
+        finalLog(file);
+        
         Exec.closeLogFile();
+  
     }
 
-    private static void removeExtraFiles(String file, String file1)
+    private static String removeExtraFiles(String file, String file1)
     {
     	String outputFile = file;
     	
@@ -394,12 +395,25 @@ public class PostProcessing
     		Exec.exec("rm -r " + outDir);
     		
     		
+    		
     	}
     	catch(Exception e)
     	{
     		String s = e.toString();
     		log(s);
     	}
+    	
+    	return finalOutputFile;
+   
+    }
+    
+    public static void finalLog(String file) {
+    	
+    	log("\n All done, result saved in " + file
+                + ". And it took only " +
+                Utils.millisToSeconds(System.currentTimeMillis() - processingStarted)
+                + " seconds.");
+		
     }
     
     private static void time(String s)
@@ -446,7 +460,7 @@ public class PostProcessing
 
         // use temp.mov to allow videoFilename == outputFilename
         Exec.exec("mv " + outDir + "temp.webm " + outputFilename);
-    }
+     }
 
     /**
      * Mixes the audio according the the events in <tt>audioEvents</tt>
@@ -567,8 +581,6 @@ public class PostProcessing
                         long duration = getVideoDurationMillis(event.getFilename());
                         if (duration == -1)
                         {
-                            // Failed to calculate the duration of the video.
-                            // Drop the RECORDING_STARTED event as well
                             log("Failed to calculate video duration for "
                                         + event.getFilename() + ". Ignoring "
                                         + "the file");
@@ -586,7 +598,7 @@ public class PostProcessing
                     {
                         log("Failed to insert RECORDING_ENDED event: "
                             + e);
-                        return null; // is it safe to continue here?
+                        return null; 
                     }
 
                 }
@@ -642,7 +654,7 @@ public class PostProcessing
 
             BufferedReader reader
                     = new BufferedReader(new InputStreamReader(p.getInputStream()));
-           // log(reader.readLine());
+          
             videoDuration = Integer.parseInt(reader.readLine());
         }
         else
@@ -689,7 +701,9 @@ public class PostProcessing
     /** Encodes the result video in the chosen file format 
      * @throws InterruptedException 
      * @throws IOException */
-    private static String encodeResultVideo(String inputFilename)
+  
+    @SuppressWarnings("unused")
+	private static String encodeResultVideo(String inputFilename)
         throws IOException, InterruptedException 
     {
         String outputFilename
@@ -701,21 +715,23 @@ public class PostProcessing
             Exec.exec(Config.FFMPEG + " -y -i " + inputFilename + " -c:v libvpx "
                     + "-cpu-used " + Config.FFMPEG_CPU_USED +  " -threads " + 
                     Config.FFMPEG_THREADS + " -b:v 1M " + outputFilename);
-
+            
             return outputFilename;
         }
         else if (Config.OUTPUT_FORMAT == Config.MP4_OUTPUT_FORMAT)
         {
             outputFilename += ".mp4";
+           
             Exec.exec(Config.FFMPEG + " -y -i " + inputFilename + " -vcodec "
                               + "libx264 " + "-acodec copy " + outputFilename);
 
+            
             return outputFilename;
         }
 
         return null;
     }
-
+    
     /** Decodes an input video file and encodes it using MJPEG
      */
     private static void decodeParticipantVideoFile(String participantFileName) 

@@ -1,3 +1,4 @@
+
 ffmpeg needs to be compiled with
 * --enable-libfreetype (for drawtext)
 * --enable-libvpx (for encoding the final result)
@@ -23,9 +24,38 @@ Configure with:
 > ./configure --disable-docs --disable-examples --disable-vp9  --disable-unit-tests --enable-shared --enable-error-concealment
 
 Build with just:
+>sudo make
+
+#### yasm from source ( minimum 1.2.0 needed for libx264)
+
+>Download tarball( version 1.2.0 or higher)
+http://yasm.tortall.net/Download.html - Download tarball 
+
+Untarring the tarball:
+>tar -xvf source.tar.gz
+
+Configure with:
+>./configure 
+
+Build with: (Sudo should be used)
+>make
+
+>make install 
+
+
+#### libx264 from git ,
+
+Get the sources:
+>git clone git://git.videolan.org/x264.git
+
+Configure with:
+>./configure --enable-static --enable-shared
+
+Build with: (Sudo should be used)
 > make
-
-
+ 
+>make install
+ 
 ### ffmpeg
 Get the sources:
 > git clone git://source.ffmpeg.org/ffmpeg.git
