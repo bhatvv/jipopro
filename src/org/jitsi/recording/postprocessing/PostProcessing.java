@@ -4,6 +4,7 @@
  * Distributable under LGPL license. See terms of license at gnu.org.
  */
 package org.jitsi.recording.postprocessing;
+
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -17,7 +18,6 @@ import org.jitsi.recording.postprocessing.video.concat.*;
 import org.jitsi.recording.postprocessing.layout.*;
 import org.jitsi.recording.postprocessing.participant.*;
 import org.json.simple.*;
-
 
 /**
  * A unit that processes videos recorded by the video recorder. It reads a
@@ -55,7 +55,7 @@ public class PostProcessing
     
     /**
      * A list of participants that are currently shown.
-     * */
+     */
     private static List<ParticipantInfo> activeParticipants;
     
     /**
